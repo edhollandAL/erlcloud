@@ -75,8 +75,8 @@ get_bucket_lifecycle_tests(_) ->
                      {id,"Archive and then delete rule"},
                      {prefix,"projectdocs/"},
                      {status,"Enabled"},
-                     {transition,[[{days,30},{storage_class,"STANDARD_IA"}],
-                                  [{days,365},{storage_class,"GLACIER"}]]}]]},
+                     {transition,[[{days,30},{storage_class,standard_ia}],
+                                  [{days,365},{storage_class,glacier}]]}]]},
                   Result).
 
 put_bucket_lifecycle_tests(_) ->
@@ -93,8 +93,8 @@ put_bucket_lifecycle_tests(_) ->
                {id,"Archive and then delete rule"},
                {prefix,"projectdocs/"},
                {status,"Enabled"},
-               {transition,[[{days,30},{storage_class,"STANDARD_IA"}],
-                            [{days,365},{storage_class,"GLACIER"}]]}]],
+               {transition,[[{days,30},{storage_class, standard_ia}],
+                            [{days,365},{storage_class, glacier}]]}]],
     Result = erlcloud_s3:put_bucket_lifecycle("BucketName", Policy, config()),
     ?_assertEqual(ok, Result),
     Result1 = erlcloud_s3:put_bucket_lifecycle("BucketName", <<"Policy">>, config()),
@@ -113,19 +113,19 @@ encode_bucket_lifecycle_tests(_) ->
                  {id,"Archive and then delete rule"},
                  {prefix,"projectdocs/"},
                  {status,"Enabled"},
-                 {transition,[[{days,30},{storage_class,"STANDARD_IA"}],
-                              [{days,365},{storage_class,"GLACIER"}]]}
+                 {transition,[[{days,30},{storage_class, standard_ia}],
+                              [{days,365},{storage_class, glacier}]]}
                 ]
                ],
     Expected2 = "<?xml version=\"1.0\"?><LifecycleConfiguration><Rule><ID>al_s3--GLACIER-policy</ID><Prefix></Prefix><Status>Enabled</Status><Transition><Days>10</Days><StorageClass>GLACIER</StorageClass></Transition></Rule><Rule><ID>ed-test-console</ID><Prefix></Prefix><Status>Enabled</Status><Transition><Days>20</Days><StorageClass>GLACIER</StorageClass></Transition></Rule></LifecycleConfiguration>",
     Policy2   = [[{id,"al_s3--GLACIER-policy"},
                   {prefix,[]},
                   {status,"Enabled"},
-                  {transition,[[{days,"10"}, {storage_class,"GLACIER"}]]}],
+                  {transition,[[{days,"10"}, {storage_class, glacier}]]}],
                  [{id,"ed-test-console"},
                   {prefix,[]},
                   {status,"Enabled"},
-                  {transition,[[{days,20},{storage_class,"GLACIER"}]]}]],
+                  {transition,[[{days,20},{storage_class, glacier}]]}]],
     Result  = erlcloud_s3:encode_lifecycle(Policy),
     Result2 = erlcloud_s3:encode_lifecycle(Policy2),
     ?_assertEqual(Expected, Result),

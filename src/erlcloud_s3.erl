@@ -563,7 +563,10 @@ encode_rule(Rule) ->
 encode_subtype(List) ->
     case List of
         [{_, _} | _] ->
-            lists:map(fun({Key, Value}) ->
+            lists:map(fun({Key, Value}) when is_atom(Value) ->
+                              {key_to_name(Key),
+                               [storgae_class_atom_to_string(Value)]};
+                         ({Key, Value}) ->
                               {key_to_name(Key),
                                [erlcloud_util:to_string(Value)]}
                       end, List);
@@ -576,13 +579,14 @@ extract_transition(Xml) ->
       [
        {date, "Date", optional_text},
        {days, "Days", optional_integer},
-       {storage_class, "StorageClass", text}
+       {storage_class, "StorageClass",
+        {single, fun storage_class_xml_to_atom/1}}
        ], Xml).
 
 extract_noncurrent_version_transition(Xml) ->
     erlcloud_xml:decode(
       [{noncurrent_days, "NoncurrentDays", integer},
-       {storage_class, "StorageClass", text}], Xml).
+       {storage_class, "StorageClass", {single, fun storage_class_xml_to_atom/1}}], Xml).
 
 extract_noncurrent_version_expiration(Xml) ->
     erlcloud_xml:decode([{noncurrent_days, "NoncurrentDays", integer}], Xml).
@@ -591,6 +595,16 @@ extract_expiration(Xml) ->
     erlcloud_xml:decode(
       [{date, "Date", optional_text},
        {days, "Days", optional_integer}], Xml).
+
+storgae_class_atom_to_string(glacier)     -> "GLACIER";
+storgae_class_atom_to_string(standard_ia) -> "STANDARD_IA".
+
+storage_class_xml_to_atom(Value) ->
+    storage_class_string_to_atom(erlcloud_xml:get_text(Value)).
+
+storage_class_string_to_atom("GLACIER")     -> glacier;
+storage_class_string_to_atom("STANDARD_IA") -> standard_ia.
+
 
 key_to_name(expiration) -> 'Expiration';
 key_to_name(id)         -> 'ID';
